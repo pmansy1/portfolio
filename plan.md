@@ -86,3 +86,55 @@ Implements `spec.md` components 1–4 and behaviors 1–8. Week 8's tool attache
 - Billed: one `curl` to `/api/chat` with a real key, ≈ $0.0007 on gpt-4o-mini.
 
 **Approved by:** Patrick Manswell, November 11, 2026 (approved after the code was written; see the commit history)
+
+## Week 8: one tool
+
+Implements the "Week 8: one tool" section of `spec.md` (components 11–12, behaviors 25–33).
+
+### Files
+| File | Component / behavior |
+|---|---|
+| `api/.../tools/Tool.java`, `ToolRegistry.java` | the schema list, `validate` and `run` (25–27, 29) |
+| `api/.../tools/RecentCommitsTool.java` | 11, 30 |
+| `api/.../tools/ToolLoop.java` | the loop, the cap, the trace (28, 32, 33) |
+| `api/.../tools/ClaimChecker.java` | 31 |
+| `api/.../OpenRouterClient.java` | gains a tool-capable call; the per-model `max_tokens` table |
+| `api/.../ChatController.java` | `/api/chat` answers through `ToolLoop`; the response gains `trace`, `stoppedBy`, `pending`, `check` |
+| `api/src/test/.../tools/ToolLoopTest.java` | the six misuse cases with a scripted model |
+| `api/src/test/.../tools/ToolRegistryTest.java`, `RecentCommitsToolTest.java`, `ClaimCheckerTest.java` | validation, GitHub errors (mock HTTP server), claim check |
+| `api/src/test/.../tools/ToolEvalIT.java` | billed eval, skipped without `OPENROUTER_API_KEY` |
+| `tools/CHECKS.md` | eval table, totals, findings, linter |
+
+### Order of work
+1. Tests for the registry and validation, then the six loop misuse tests with a scripted `ChatModel`. Run them red, write the code, run them green, commit.
+2. `RecentCommitsTool` with a mock GitHub server (404, 403, success, timeout), test first.
+3. `ClaimChecker`, test first.
+4. Wire `ToolLoop` into `ChatController` (update `ChatControllerTest` first). The voice route needs no change: it already posts to `/api/chat`.
+5. Billed eval: five questions × two models. Record in `tools/CHECKS.md`. Then findings, tag `week08-submitted`.
+
+### Risks
+- **The model never calls the tool.** The description is an instruction ("call this before saying anything about recent work"), not a label. The eval's question 1 notices.
+- **The model calls the tool on every question,** including ones the profile answers. That costs an extra chat call each time, and eval question 3 measures it.
+- **Team commits credited to me.** The result carries `author`. The claim check can't tell "Patrick committed X" from "the repository got X", so this goes under "What the check cannot catch" and gets a prompt rule.
+- **minimax-m3's hidden reasoning** can use up `max_tokens` and return nothing. The per-model token table gives it 1500, and an empty answer becomes the fallback sentence.
+- **GitHub's rate limit (60/hour)** in the eval. 10 runs fit; `GITHUB_TOKEN` is read if set.
+
+### Proof
+**No key (free, `./mvnw test`):**
+- Single shot: a scripted tool call gets its result back as a `tool` message with the same `tool_call_id`, and the next reply is the answer. *Proves* the loop's message shapes.
+- Bad arguments (wrong name, wrong type, outside `enum`, not JSON): an error result, the loop continues, the model's second reply is used. *Proves* 26.
+- Unknown tool: an error result listing `recent_commits`. *Proves* 27.
+- Endless caller: a model that always asks is stopped at 4, and the answer is the program's sentence. *Proves* 28.
+- Side effect held: a test-only side-effect tool ends up in `pending`, and its counter stays 0. *Proves* 29.
+- Unsupported claim: an answer naming a SHA no result contained is flagged. *Proves* 31.
+- GitHub 404, 403, and success against a mock server. *Proves* 30.
+
+**Billed eval (`OPENROUTER_API_KEY` set; ≈ 10 GitHub calls, under the limit):**
+- Five questions × 2 models. gpt-4o-mini: about 3,000 prompt tokens per step, so ≈ $0.0005 per step, ≈ $0.001 for a tool question. m3: about 2× the price, plus reasoning tokens, ≈ $0.003 per tool question. **Total ≈ $0.02.** *Proves* whether each model calls the tool when it should and not when it shouldn't, and whether its answers pass the claim check.
+
+### Questions asked of this plan
+- *"If the model asks for the tool with the wrong argument name, what exactly goes back to it, and what does the second test assert?"* The tool message content is `{"error": "unexpected argument 'repository'; expected repo, count"}`. The test asserts that the second request to the model contains that `tool` message with the same `tool_call_id`, and that the final answer is the model's second reply.
+- *"What stops a model that asks for the same tool ten times, and what does the visitor see when it does?"* The step cap of 4 in `ToolLoop`. The visitor sees "I couldn't finish looking that up. Please try a narrower question.", and the trace shows the four calls.
+- *"If the model answers about a repository the tool said does not exist, which line of code notices?"* `ClaimChecker` flags an answer that describes recent commits for a repository whose only tool result was an error (behavior 31). The test is `unsupportedClaimIsFlagged`.
+
+**Approved by:** Patrick Manswell, November 11, 2026
