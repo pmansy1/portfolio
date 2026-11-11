@@ -2,10 +2,10 @@
   "schema_version": 1,
   "person": {
     "name": "Patrick Manswell",
-    "headline": "TODO(Patrick): one line, e.g. 'Computer science student at Trinity College building Java and AI-integrated web services.'",
+    "headline": "Computer science student at Trinity College (May 2027) building Java web services and AI integrations.",
     "school": "Trinity College",
     "graduation": "May 2027",
-    "looking_for": "Software engineering roles on the East Coast where I can leverage my skills in AI, testing, and web services.",
+    "looking_for": "Software engineering roles on the East Coast where I can apply my skills in AI, testing, and web services.",
     "contact": {
       "github": "https://github.com/pmansy1"
     }
@@ -33,10 +33,10 @@
       ],
       "evidence": "Public repo: REST controllers for Patient, Encounter, Medication, Observation and CareGap with MRN search, Swagger UI, seeded synthetic patients, Docker Compose for backend + database. No automated tests.",
       "annotation": {
-        "what_is_this": "A project to help me learn more about Java, Spring, and Postgres.",
-        "why_this_choice": "TODO(Patrick): alternatives (language, framework, database) and the trade-off",
+        "what_is_this": "A personal project I built to learn Java, Spring Boot, and PostgreSQL.",
+        "why_this_choice": "A professor recommended this stack to me. I also felt most comfortable in Java, since all of my introductory CS courses were taught in it, so it was the language I knew best.",
         "what_breaks": "TODO(Patrick): fragile points, assumptions, blast radius",
-        "what_did_i_learn": "I learned about the core competencies, agile development, version control and Git, and a lot of backend development."
+        "what_did_i_learn": "I learned the core skills of backend development, along with agile development practices and version control with Git."
       }
     },
     {
@@ -61,10 +61,10 @@
       ],
       "evidence": "Live demo on Vercel; 9 Vitest server tests covering input validation, response shape, implausible vitals (BP 340/180 flagged high severity), request caching (Claude called once for identical payloads), and API-key middleware, with the Claude call mocked.",
       "annotation": {
-        "what_is_this": "A project I created as a test for a job. It reconciles medical data from patients into one report.",
-        "why_this_choice": "TODO(Patrick): include why Claude Sonnet and what else you considered",
+        "what_is_this": "A take-home project I built as part of a job application. It reconciles a patient's medical data from different sources into a single report.",
+        "why_this_choice": "I used TypeScript and Express because that was the stack suggested by the founder of Onye, the company I was applying to.",
         "what_breaks": "TODO(Patrick): e.g. what happens when the model's confidence score is wrong",
-        "what_did_i_learn": "This was my first introduction to calling an AI API."
+        "what_did_i_learn": "This was my first experience calling an AI API from my own code."
       }
     },
     {
@@ -90,10 +90,10 @@
       ],
       "evidence": "Team repo with 4 contributors; k8s/ manifests, .github/workflows/ CI per service, architecture and ER diagrams, user guide. Credit only what my_role lists.",
       "annotation": {
-        "what_is_this": "A class project: a gamified fitness app that lets you compete with friends. You can draft a workout routine based on your interests and goals.",
-        "why_this_choice": "TODO(Patrick)",
+        "what_is_this": "A class project: a gamified fitness app where you can compete with friends and draft a workout routine based on your interests and goals.",
+        "why_this_choice": "The course was built around learning cloud-native development, and the project called for many microservices. We hosted it on our professor's Kubernetes cluster in his homelab.",
         "what_breaks": "TODO(Patrick): the README already lists Harbor login, ingress routing and the wrong ingress host",
-        "what_did_i_learn": "I worked in a team on this, and it was an introduction to cloud-native development and CI/CD."
+        "what_did_i_learn": "I worked as part of a team, and this project was my introduction to cloud-native development and CI/CD."
       }
     }
   ],
@@ -192,19 +192,24 @@
   ],
   "learning": [
     {
-      "name": "TODO(Patrick): something you are actively learning, e.g. 'Speech-to-text and text-to-speech APIs'",
-      "started": "2026-11",
-      "what_i_have_done_so_far": "TODO(Patrick): honest, may be 'read docs only'"
+      "name": "AI integration",
+      "started": "2026-09",
+      "what_i_have_done_so_far": "TODO(Patrick): what you have done so far, honestly"
+    },
+    {
+      "name": "Database management",
+      "started": "2026-09",
+      "what_i_have_done_so_far": "TODO(Patrick): what you have done so far, honestly"
     }
   ],
   "not_yet": [
     {
-      "name": "Vector databases / RAG in production",
-      "why_not_yet": "TODO(Patrick): one sentence on why you have deliberately not prioritized it"
+      "name": "Building a RAG application",
+      "why_not_yet": "I haven't built a RAG application yet. TODO(Patrick): why it hasn't been a priority"
     },
     {
       "name": "Native mobile development (iOS/Swift, Android/Kotlin)",
-      "why_not_yet": "TODO(Patrick)"
+      "why_not_yet": "I haven't built a native mobile app yet. TODO(Patrick): why it hasn't been a priority"
     }
   ]
 }
