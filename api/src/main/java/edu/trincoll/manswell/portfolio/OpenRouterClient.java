@@ -46,7 +46,7 @@ public class OpenRouterClient implements ModelClient, ChatModel {
         this(RestClient.builder().requestFactory(timeouts()), baseUrl, apiKey, model);
     }
 
-    OpenRouterClient(RestClient.Builder builder, String baseUrl, String apiKey, String model) {
+    public OpenRouterClient(RestClient.Builder builder, String baseUrl, String apiKey, String model) {
         this.apiKey = apiKey == null ? "" : apiKey.strip();
         this.model = model;
         this.http = builder.baseUrl(baseUrl).build();
