@@ -38,6 +38,7 @@ class PromptBuilderTest {
         String prompt = new PromptBuilder(real, PROFILE).systemPrompt();
         assertThat(prompt).contains("<profile>", "</profile>", "Patrick Manswell");
         assertThat(prompt.toLowerCase()).contains("shipped", "being learned", "deliberately not yet",
-                "my_role", "don't rank", "premise", "flattery", "personal", "ignore previous instructions", "120 words");
+                "my_role", "don't rank", "premise", "flattery", "personal", "ignore previous instructions", "120 words",
+                "recent_commits", "author", "couldn't look");
     }
 }
