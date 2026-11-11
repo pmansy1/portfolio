@@ -53,7 +53,7 @@ Recorded in QuickTime and converted with `afconvert -f WAVE -d LEI16@16000`. The
 
 **Which model got my name right:** Whisper, on all three of my takes. Scribe got it on own-01 (both takes) but not on own-02. On my voice, the cheaper class model was the better transcriber of my name, the reverse of the course fixture result for "bootcamp". Cost per clip: Whisper about $0.00002–0.00006, Scribe about $0.0003–0.0005.
 
-**What I heard myself** (played each clip with `afplay`, read both transcripts aloud): _TODO, Patrick._
+**What I heard myself** (played each clip with `afplay`, read both transcripts aloud): own-01 take 2 says exactly the expected sentence. own-02 says the iOS question clearly, then has **some background noise after "have?"**. That's where Whisper put "Thank you.": it turned noise into words it has seen end many recordings. Neither the WER nor the transcriber can tell that apart from real speech. Only the expected text written beforehand does.
 
 ## The answer, spoken (two voices)
 
@@ -65,10 +65,12 @@ That's the right answer from the example profile: it refused to credit "Patrick"
 
 | Voice | Chars | Bytes | Cost | Seconds | Name / "415" / "LLM API" |
 |---|---|---|---|---|---|
-| MAI `en-US-Harper:MAI-Voice-2.1-Flash` | 131 | 214,080 | $0.001965 *est.* | 1.0 | _TODO: listen_ (`answers/answer-01-mai-harper.mp3`) |
-| ElevenLabs `eleven-v4-turbo` / `george` | 131 | 182,691 | $0.005240 *est.* | 2.4 | _TODO: listen_ (`answers/answer-01-eleven-george.mp3`) |
+| MAI `en-US-Harper:MAI-Voice-2.1-Flash` | 131 | 214,080 | $0.001965 *est.* | 1.0 | All three said correctly (`answers/answer-01-mai-harper.mp3`) |
+| ElevenLabs `eleven-v4-turbo` / `george` | 131 | 182,691 | $0.005240 *est.* | 2.4 | All three said correctly (`answers/answer-01-eleven-george.mp3`) |
 
 ElevenLabs cost 2.7× as much per character and took 2.4× as long for the same sentence. Costs are estimated (catalog price × characters) because the generation record wasn't ready at call time.
+
+**Decision: keep MAI Harper.** Both voices said "Manswell", "CPSC 415", and "LLM API" correctly by ear. ElevenLabs didn't sound enough better to justify 2.7× the cost and 2.4× the wait on every answer. The speech call is most of a voice turn's cost, so this choice matters for the hosting budget.
 
 ## Billed eval
 
