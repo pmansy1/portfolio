@@ -25,3 +25,4 @@ obj/
 
 # voice loop scratch output
 voice/last-answer.mp3
+voice/clips/*.m4a

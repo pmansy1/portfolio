@@ -1,0 +1,35 @@
+[
+  {
+    "text": "How much iOS experience does Patrick Manswell have?",
+    "model": "elevenlabs/scribe-v2",
+    "audio_seconds": 5.4813125,
+    "cost": 0.0003349690972221613,
+    "seconds": 1.0,
+    "file": "own-01.wav",
+    "check": {
+      "ok": false,
+      "wer": 1.0,
+      "missing": [
+        "LLM",
+        "415"
+      ],
+      "empty": false
+    }
+  },
+  {
+    "text": "How much iOS experience does Patrick Vans will have?",
+    "model": "elevenlabs/scribe-v2",
+    "audio_seconds": 6.3133125,
+    "cost": 0.0003858135416665965,
+    "seconds": 0.8,
+    "file": "own-02.wav",
+    "check": {
+      "ok": false,
+      "wer": 0.25,
+      "missing": [
+        "Manswell"
+      ],
+      "empty": false
+    }
+  }
+]

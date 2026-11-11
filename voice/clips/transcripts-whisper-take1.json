@@ -1,0 +1,33 @@
+[
+  {
+    "text": "How much iOS experience does Patrick Manswell have?",
+    "model": "openai/whisper-large-v3-turbo",
+    "audio_seconds": 5.4813125,
+    "cost": 6.090347222216132e-05,
+    "seconds": 1.3,
+    "file": "own-01.wav",
+    "check": {
+      "ok": false,
+      "wer": 1.0,
+      "missing": [
+        "LLM",
+        "415"
+      ],
+      "empty": false
+    }
+  },
+  {
+    "text": " How much IOS experience does Patrick Manswell have?  Thank you.",
+    "model": "openai/whisper-large-v3-turbo",
+    "audio_seconds": 6.313,
+    "cost": 2.102229e-05,
+    "seconds": 3.2,
+    "file": "own-02.wav",
+    "check": {
+      "ok": false,
+      "wer": 0.25,
+      "missing": [],
+      "empty": false
+    }
+  }
+]
