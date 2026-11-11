@@ -210,9 +210,50 @@ Carried over from the intent:
 - Accounts, logins, databases, a CMS, persistent conversation history.
 - RAG over external sources. The whole profile fits in context, so retrieval would add a failure mode (missed chunks) with no benefit at this size.
 - Non-pinned projects, including the CPSC 415 weekly labs.
-- Spoken interface (Week 7 lab) and tool use (Week 8 lab). Each will get its own intent and an update to this spec.
+- Tool use (Week 8 lab). It will get its own intent and an update to this spec. The spoken interface (Week 7) is now specified below.
 
 Ruled out by this design:
 - Streaming responses. Answers are short, and streaming makes the runner and error handling harder.
 - Multi-turn memory on the server. Each request stands alone. The only multi-turn adversarial case is a visitor re-asking a question, which tests the same rule twice.
 - Fine-tuning. Prompting plus a test set is enough for a profile this small.
+
+## Week 7: spoken interface
+
+Implements [`intent/voice.md`](./intent/voice.md). If this section and that intent disagree, the intent wins. Approved by Patrick Manswell, November 11, 2026.
+
+**Where it runs this week:** the Java chat service (component 4) doesn't exist yet. So the loop runs in `voice/server.py`, which answers from the course example's `profile.json` (fictional student "Sam Rivera"). `voice/CHECKS.md` says so. When `/api/chat` exists, `voice_turn` calls my answer function and my profile instead, before November 30.
+
+### 7. Transcriber (`voice/transcribe.py`)
+- **What it does:** Sends one recording to OpenRouter's transcription endpoint (`POST /api/v1/audio/transcriptions`) as base64 with its format. It records the text, the audio seconds and cost from the reply's `usage`, and the wall-clock seconds. With `--set expected.json` it does one call per clip and runs the checker (component 9) on each.
+- **Language:** Python 3.12. **Why:** the `openrouter` SDK has a typed client for both audio endpoints (`client.stt`, `client.tts`), and the course example measured them in Python. The Java alternative is two hand-written `RestClient` calls plus base64 handling, which is worth doing once the Spring service exists and not before there's anything to plug it into. The rest of the course labs I can explain in the Defense are also Python.
+- **Model:** `openai/whisper-large-v3-turbo` (default, `STT_MODEL` to override). **Why:** it's priced per second of audio, at about $0.00002 for a 6 s clip, the cheapest serious transcriber. **Comparison:** `elevenlabs/scribe-v2`, about 18× the price. It's the second opinion: in the course rehearsal it read "bootcamp" correctly where Whisper heard "boot camp". Both run on every clip, and the one I keep is the one that gets my name right at a cost I can justify.
+- **Formats accepted:** wav, mp3, m4a, webm, ogg, flac, aac. Fixture clips are WAV, because MP3 headers with a wrong length made Whisper stop halfway in the rehearsal.
+
+### 8. Speaker (`voice/speak.py`)
+- **What it does:** Sends the answer text to the speech endpoint (`POST /api/v1/audio/speech`) and saves MP3 (or WAV via PCM when the output ends in `.wav`). It records characters, bytes, seconds, and cost. The reply is raw bytes with no `usage`, so the cost comes from the generation record (`X-Generation-Id`) when it exists, and otherwise from the catalog price × characters, marked *estimated*.
+- **Language:** Python, same reason as component 7.
+- **Model:** `microsoft/mai-voice-2.1-flash` with voice `en-US-Harper:MAI-Voice-2.1-Flash` (default, `TTS_MODEL` / `TTS_VOICE` to override). **Why:** priced per character (about $0.000015/char, so about $0.003 for a three-sentence answer), under a second, and its MP3 transcribes cleanly. **Comparison:** `elevenlabs/eleven-v4-turbo` with voice `george`, about 2.7× per character. It's more expressive, and I'll judge by ear whether that's worth it for one sentence about my projects.
+
+### 9. Transcript checker (`voice/check.py`)
+- **What it does:** Plain code, no model, no key. Word error rate (edits per expected word, word-level Levenshtein) against text a person wrote down before the model heard the clip, a list of `must_contain` words that didn't survive, and an `empty` flag.
+- **Language:** Python. **Model:** none. That's the point: the transcriber can't check itself.
+
+### 10. Voice route and recorder (`voice/server.py`, `voice/index.html`)
+- **What it does:** `POST /api/voice`: the body is the recording, and `Content-Type` names the format. The server transcribes, calls the **same `answer()` function** the typed path (`POST /api/ask`) uses, speaks the reply, and returns JSON `{transcript, answer, audio_b64, cost: {stt, chat, tts}, seconds, models}`. The page has a hold-to-talk button (MediaRecorder, `audio/webm`), a file-picker fallback, and a typed fallback for keyboard users.
+- **Language:** Python standard library `http.server` + `openrouter`, so the whole mechanism is visible. **Chat model for the answer:** `minimax/minimax-m3`, the course class model, until my Java service with `openai/gpt-4o-mini` exists.
+
+### Dependencies
+- **`openrouter`** (Python SDK). Typed calls to the transcription, speech, chat, and generation endpoints with the key read from the environment. The alternative is `urllib` by hand, which means more code to get the base64 payload and the streamed audio reply right.
+- **`pytest`**: the no-key checker tests and the key-gated eval.
+- **`playwright`**: the browser check (component 10) that the page works and the browser never sees the key or calls the provider.
+- **`ruff`**: lint, findings recorded in `CHECKS.md`.
+
+### Behavior (Week 7)
+17. **An empty transcript is a failed transcript, not a crash.** `check.compare` reports `ok: false, empty: true` with WER 1.0 for `""` or `None`. `/api/voice` answers "I didn't catch that." and makes **no chat or speech call**.
+18. **A reply that isn't audio is an error, never saved as audio.** If the speech response's `Content-Type` doesn't start with `audio/`, `speak` raises with the content type and the first 300 bytes of the body, and writes no file. `/api/voice` still returns the transcript and the answer with `tts_error` set.
+19. **Expected text is compared in code by word error rate.** The default tolerance is **0.15** (about one word in seven), set per clip by `max_wer` in `expected.json` with a `note` whenever it's raised. Case, punctuation, and spacing don't count ("CPSC415" = "CPSC 415", "boot camp" = "bootcamp" for `must_contain`).
+20. **Named words must survive regardless of WER.** Each clip's `must_contain` lists my name (`Manswell`), the course number (`415`), and any project name. A missing one fails the clip even when the WER is within tolerance. A number read as words ("four fifteen") is a miss.
+21. **The spoken answer is at most three sentences with no markdown.** The system prompt asks for two or three spoken sentences, no lists, markdown, or URLs. `voice/answer_text.py` (`for_speech`) strips markdown characters and truncates to three sentences before the speech call. No-key tests cover it.
+22. **The key stays on the server and the browser sends only audio.** The server reads `OPENROUTER_API_KEY` once at startup. The page source has no `sk-or`, and the browser check asserts no `Authorization` header leaves the browser, no request goes to `openrouter.ai`, and the only API call is to `/api/voice`.
+23. **Uploads are capped.** `/api/voice` refuses bodies over 10 MB with 413 and unknown audio types with 415, before any billed call.
+24. **Tests that call a model are skipped without a key.** `tests/test_eval.py` is `skipif(not OPENROUTER_API_KEY)`. Each clip is transcribed once and there's one speech call, never a model call inside a loop of tests.
