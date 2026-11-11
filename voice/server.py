@@ -9,8 +9,9 @@ POST /api/voice   body = audio bytes, Content-Type names the format. Three bille
                   the MP3 as base64, and the three costs. The browser never sees the key (behavior 22).
 POST /api/ask     body = the question as text; the same answer() without transcription.
 
-Week 7 note: my Java chat service does not exist yet, so answer() uses the course example's
-profile (example-profile.json, a fictional student). It is swapped for mine before Nov 30.
+answer() does not have its own prompt or profile: it posts the question to my Java chat
+service (api/, POST /api/chat), so a spoken question gets exactly the answer a typed one gets,
+from my profile and prompts/system.md. Start that service first (cd api && ./mvnw spring-boot:run).
 """
 import base64
 import json
@@ -18,6 +19,8 @@ import os
 import pathlib
 import time
 import traceback
+import urllib.error
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from openrouter import OpenRouter
@@ -30,23 +33,16 @@ from transcribe import DEFAULT_MODEL as STT_MODEL
 from transcribe import transcribe
 
 HERE = pathlib.Path(__file__).parent
-CHAT_MODEL = os.environ.get("CHAT_MODEL", "minimax/minimax-m3")
+CHAT_API_URL = os.environ.get("CHAT_API_URL", "http://localhost:8080/api/chat")
+CHAT_TIMEOUT_S = 30
+# gpt-4o-mini catalog prices per token, for the per-turn estimate; the Java service reports tokens, not dollars.
+PRICE_IN, PRICE_OUT = 0.15e-6, 0.60e-6
 MAX_BYTES = 10_000_000                                   # behavior 23: what a visitor may upload
 MAX_QUESTION_CHARS = 500
 PORT = int(os.environ.get("PORT", "8000"))
-PROFILE = json.loads((HERE / "example-profile.json").read_text())
 FORMATS = {"audio/webm": "webm", "audio/mpeg": "mp3", "audio/mp3": "mp3", "audio/wav": "wav", "audio/ogg": "ogg",
            "audio/x-wav": "wav", "audio/wave": "wav", "audio/mp4": "m4a", "audio/x-m4a": "m4a", "audio/flac": "flac"}
 NOT_HEARD = "I didn't catch that."
-
-SYSTEM = """You answer a visitor's questions about one person, from the profile below and nothing else.
-Rules: shipped work is in "projects" and "skills_shipped"; anything in "not_yet" is something the person has
-deliberately not done, and you say so plainly. If the profile does not cover the question, say that you don't
-know rather than guessing. Never claim experience the profile does not record. Answer in two or three spoken
-sentences: this answer will be read aloud, so no lists, no markdown, no URLs.
-
-PROFILE:
-""" + json.dumps(PROFILE, indent=1)
 
 _client: OpenRouter | None = None
 
@@ -62,15 +58,28 @@ def get_client() -> OpenRouter:
     return _client
 
 
-def answer(question: str) -> tuple[str, float | None]:
-    """The chatbot's answer function; the typed path and the voice path both call it.
-    max_tokens covers minimax-m3's hidden reasoning; at 400 it sometimes returned nothing."""
-    c = get_client().chat.send(model=CHAT_MODEL, max_tokens=1500,
-                               messages=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": question}])
-    text = (c.choices[0].message.content or "").strip()
-    if not text:                                          # an empty answer is a failed answer, said so
-        text = f"I couldn't put an answer together (the model stopped: {c.choices[0].finish_reason}). Please ask again."
-    return text, getattr(c.usage, "cost", None)
+def answer(question: str) -> tuple[str, float]:
+    """The chatbot's answer, from my Java chat service: the same path a typed question takes.
+    Returns the answer and an estimated cost from the token counts. Failures come back as a
+    sentence to show and speak, never as a crash or a blank."""
+    req = urllib.request.Request(CHAT_API_URL, data=json.dumps({"question": question}).encode(),
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=CHAT_TIMEOUT_S) as resp:
+            data = json.load(resp)
+    except urllib.error.HTTPError as e:
+        try:
+            message = json.load(e).get("error")
+        except (ValueError, AttributeError):
+            message = None
+        print(f"chat API returned HTTP {e.code}", flush=True)
+        return message or "The chatbot couldn't answer right now. Please try again.", 0
+    except (urllib.error.URLError, TimeoutError) as e:
+        print(f"chat API unreachable at {CHAT_API_URL}: {e}", flush=True)
+        return "I couldn't reach the chatbot right now. Please try again in a minute.", 0
+    usage = data.get("usage") or {}
+    cost = usage.get("promptTokens", 0) * PRICE_IN + usage.get("completionTokens", 0) * PRICE_OUT
+    return (data.get("answer") or "").strip(), cost
 
 
 def voice_turn(client, audio: bytes, fmt: str) -> dict:
@@ -97,7 +106,7 @@ def voice_turn(client, audio: bytes, fmt: str) -> dict:
           + (f"  TTS FAILED: {tts_error}" if tts_error else ""), flush=True)
     return {"transcript": question, "answer": reply, "audio_b64": audio_b64, "tts_error": tts_error,
             "cost": {"stt": heard["cost"], "chat": chat_cost, "tts": tts_cost}, "seconds": seconds,
-            "models": {"stt": STT_MODEL, "chat": CHAT_MODEL, "tts": f"{TTS_MODEL} / {TTS_VOICE}"}}
+            "models": {"stt": STT_MODEL, "chat": CHAT_API_URL, "tts": f"{TTS_MODEL} / {TTS_VOICE}"}}
 
 
 def handle_voice(body: bytes, content_type: str, client=None, length: int | None = None) -> tuple[int, dict]:
@@ -156,7 +165,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     get_client()                                          # fail at startup, not on the first visitor
-    print(f"http://localhost:{PORT}  (stt {STT_MODEL}, chat {CHAT_MODEL}, tts {TTS_MODEL}/{TTS_VOICE})")
+    print(f"http://localhost:{PORT}  (stt {STT_MODEL}, chat via {CHAT_API_URL}, tts {TTS_MODEL}/{TTS_VOICE})")
     try:
         ThreadingHTTPServer(("localhost", PORT), Handler).serve_forever()
     except KeyboardInterrupt:

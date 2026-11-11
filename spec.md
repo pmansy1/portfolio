@@ -221,7 +221,9 @@ Ruled out by this design:
 
 Implements [`intent/voice.md`](./intent/voice.md). If this section and that intent disagree, the intent wins. Approved by Patrick Manswell, November 11, 2026.
 
-**Where it runs this week:** the Java chat service (component 4) doesn't exist yet. So the loop runs in `voice/server.py`, which answers from the course example's `profile.json` (fictional student "Sam Rivera"). `voice/CHECKS.md` says so. When `/api/chat` exists, `voice_turn` calls my answer function and my profile instead, before November 30.
+**Update, Nov 11:** `voice_turn` now posts to my Java `POST /api/chat` (component 4), so voice and typed questions share one answer path, my profile, and my prompt. `CHAT_API_URL` defaults to `http://localhost:8080/api/chat`. The paragraph below is the Week 7 state.
+
+**Where it ran in Week 7:** the Java chat service (component 4) didn't exist yet. So the loop runs in `voice/server.py`, which answers from the course example's `profile.json` (fictional student "Sam Rivera"). `voice/CHECKS.md` says so. When `/api/chat` exists, `voice_turn` calls my answer function and my profile instead, before November 30.
 
 ### 7. Transcriber (`voice/transcribe.py`)
 - **What it does:** Sends one recording to OpenRouter's transcription endpoint (`POST /api/v1/audio/transcriptions`) as base64 with its format. It records the text, the audio seconds and cost from the reply's `usage`, and the wall-clock seconds. With `--set expected.json` it does one call per clip and runs the checker (component 9) on each.

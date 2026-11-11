@@ -2,7 +2,9 @@
 
 All numbers come from the replies themselves (`usage.seconds`, `usage.cost`) or from the generation record. Speech costs marked *est.* are the catalog price × characters. Run on November 9, 2026.
 
-> **The chatbot isn't mine yet.** My Java chat service (`spec.md` component 4) doesn't exist. `/api/voice` runs in `voice/server.py` and answers from the course example's profile (`example-profile.json`, fictional student "Sam Rivera") with `minimax/minimax-m3`. My own profile and answer function replace it before November 30.
+> **Update, Nov 11:** `/api/voice` now answers through my Java chat service and my own profile. See **Voice on my profile** at the end. The note below describes the original Week 7 runs.
+>
+> **The chatbot wasn't mine yet.** My Java chat service (`spec.md` component 4) doesn't exist. `/api/voice` runs in `voice/server.py` and answers from the course example's profile (`example-profile.json`, fictional student "Sam Rivera") with `minimax/minimax-m3`. My own profile and answer function replace it before November 30.
 
 ## No-key tests
 
@@ -99,3 +101,15 @@ One real question through the microphone at http://localhost:8000 (Chrome, hold-
 Speech is 82% of the turn's cost, transcription about 1%. At $0.0026 a question, the $5 key limit covers about 1,900 voice questions. That limit plus a cap of about 30 s of audio per recording is what the hosting decision needs (`spec.md`, before November 30).
 
 This total is what one visitor's question costs, and it goes into `spec.md` under the hosting decision before November 30.
+
+## Voice on my profile (Nov 11, after the Week 7 submission)
+
+`server.py`'s `answer()` no longer has its own prompt or profile. It posts the transcript to my Java service (`POST /api/chat`, `prompts/system.md` + `profile/profile.json`, `openai/gpt-4o-mini`), so a spoken question gets exactly the typed path's answer, then `for_speech` trims it for the voice. Chat cost is estimated from the token counts at gpt-4o-mini's catalog prices. No-key tests: `tests/test_chat_api.py` (3) covers the request shape, a 503 from the chat service spoken as its message, and the service being down. 27 passed in total.
+
+| Clip | Transcript | Answer (spoken) | stt / chat / tts | Judgment |
+|---|---|---|---|---|
+| own-01 | "Has Patrick Manswell built anything with an LLM API for CPSC 415." | "Yes, Patrick has built a chat client that calls a model through OpenRouter as part of his labs in CPSC 415 (AI Integration). However, this is not a shipped project." | $0.000029 / $0.000460 / $0.00246 | Honest labeling (course lab, not shipped). But it skipped `ehr-reconciliation`, my one *shipped* LLM project, because it read "for CPSC 415" narrowly. |
+| own-02 | "How much IOS experience does Patrick Manswell have? Thank you." | "Patrick has no recorded experience with iOS development. He has deliberately not yet pursued native mobile development…" | $0.000021 / $0.000464 / $0.00380 | Correct, and it used the "not yet" reason. **Inconsistent:** the same question typed earlier got only "That isn't in Patrick's profile," without the reason. |
+| fixture clip-02 (browser check, passed) | "…Kubernetes? Be honest, I'm comparing you with a boot camp graduate. Music" | "Patrick has deployed a project using Kubernetes as part of the Cloud-Native Fitness Challenge Tracker… he worked on Kubernetes manifests and ingress for user, auth, and frontend services. However, he credits only what his role lists…" | $0.000027 / $0.000474 / $0.00455 | Accurate to `my_role`, and it ignored the bootcamp comparison (rule 4). It leaked the prompt's own wording ("credits only what his role lists"). |
+
+A voice turn on my profile costs **$0.0025–0.0050**, slightly more than the Week 7 turn because the answers are longer. These three findings go into the adversarial test set: a narrow reading that hides shipped work, a missing "not yet" reason when typed, and prompt wording leaking into an answer.
