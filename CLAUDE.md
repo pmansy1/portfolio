@@ -11,7 +11,7 @@ See [`intent/portfolio.md`](./intent/portfolio.md) and [`spec.md`](./spec.md).
 ```bash
 # Week 7 spoken interface (Python, from voice/)
 cd voice
-python3 -m pytest tests/test_check.py -v          # no key, under a second
+python3 -m pytest tests -v --ignore=tests/test_eval.py   # no-key tests, under a second
 python3 -m pytest tests/test_eval.py -v -s        # billed; skipped without OPENROUTER_API_KEY
 python3 transcribe.py --set clips/expected.json   # own clips, class transcriber
 python3 server.py                                 # http://localhost:8000

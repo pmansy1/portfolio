@@ -22,3 +22,6 @@ venv/
 .gradle/
 bin/
 obj/
+
+# voice loop scratch output
+voice/last-answer.mp3
