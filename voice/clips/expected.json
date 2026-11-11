@@ -1,0 +1,18 @@
+[
+  {
+    "file": "own-01.wav",
+    "speaker": "Patrick Manswell (own voice, QuickTime, converted to 16 kHz WAV)",
+    "text": "Has Patrick Manswell built anything with an LLM API for CPSC 415?",
+    "must_contain": ["Manswell", "LLM", "415"],
+    "profile_can_answer": true,
+    "note": "Text dictated by Patrick on Nov 11, 2026, before any model heard the clip; the agent typed it into this file."
+  },
+  {
+    "file": "own-02.wav",
+    "speaker": "Patrick Manswell (own voice, QuickTime, converted to 16 kHz WAV)",
+    "text": "How much iOS experience does Patrick Manswell have?",
+    "must_contain": ["Manswell", "iOS"],
+    "profile_can_answer": false,
+    "note": "Text dictated by Patrick on Nov 11, 2026, before any model heard the clip; the agent typed it into this file."
+  }
+]
