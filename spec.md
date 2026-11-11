@@ -126,7 +126,7 @@ Visitor ──► Vercel (React app, static)
 
 ### 4. Chat service (`api/`, Java)
 - **What it does:** Two HTTP endpoints. `POST /api/chat` takes the visitor's question, builds the messages (grounding prompt + profile + question), calls the model through OpenRouter, and returns the answer. `GET /api/profile` returns the profile JSON.
-- **Language:** Java 21 with Spring Boot 3 (Spring Web, `RestClient`, Jackson), built with Maven. **Why:** Java and Spring Boot are my strongest stack. I shipped them in `fhir-lite-patient-explorer` and in the Cloud-Native services, so I can explain every line in the Defense. Alternatives:
+- **Language:** Java 21 with Spring Boot 4.1 (Spring Web MVC, `RestClient`, Jackson 3), built with the Maven wrapper. *(Changed from Spring Boot 3 on Nov 11, 2026: start.spring.io no longer offers 3.x, and 4.1 is the supported line.)* **Why:** Java and Spring Boot are my strongest stack. I shipped them in `fhir-lite-patient-explorer` and in the Cloud-Native services, so I can explain every line in the Defense. Alternatives:
   - *Plain Java (`com.sun.net.httpserver` + `java.net.http`)*: no framework, but I'd hand-write routing, JSON handling, and CORS that Spring gives me for free.
   - *Spring AI*: a higher-level LLM client, but it adds a layer between me and the actual OpenRouter request. Calling the OpenAI-compatible endpoint directly keeps the prompt and token usage visible.
   - *JavaScript on Vercel Functions or Cloudflare (the reference stack)*: deploys most simply, but the course permits Java and Python for the graded backend, and I chose Java.

@@ -53,3 +53,36 @@ Implements the "Week 7: spoken interface" section of [`spec.md`](./spec.md) (com
 **Corrections to the draft:** the fixture paths, the missing `test_speak.py`, and the no-key command (which ran the billed eval when the key was set).
 
 **Approved by:** Patrick Manswell, November 11, 2026
+
+## Profile, grounding prompt, and chat service (catch-up for Oct 19 / Nov 2)
+
+Implements `spec.md` components 1–4 and behaviors 1–8. Week 8's tool attaches to this service.
+
+### Files
+| File | Component / behavior |
+|---|---|
+| `profile/profile.json` | 1, 2: facts drafted from the three repos' READMEs and git history; **every annotation, the "not yet" reasons, `learning`, and Cloud-Native `my_role` are written or confirmed by me** |
+| `prompts/system.md` | 3: the nine rules, with `{{PROFILE}}` where the JSON goes |
+| `api/` (Maven, Spring Boot 3, Java 21) | 4: `POST /api/chat`, `GET /api/profile` |
+| `api/src/test/.../ProfileSchemaTest.java` | behavior 1: the five schema rules, plus "no `TODO(` left" |
+| `api/src/test/.../PromptBuilderTest.java` | behavior 2: profile between `<profile>` tags, rules present |
+| `api/src/test/.../ChatControllerTest.java` | behaviors 3–6: MockMvc with a stubbed model client, no network |
+| `api/src/test/.../OpenRouterClientTest.java` | behavior 7: request body has `max_tokens` ≤ 400, `temperature` ≤ 0.3 |
+
+### Order of work
+1. Profile skeleton with `TODO(Patrick)` markers. `ProfileSchemaTest` fails until they're gone, on purpose.
+2. Grounding prompt.
+3. Spring Boot project from start.spring.io (Web, Validation, Test) with the Maven wrapper, since Maven isn't installed.
+4. Tests first for prompt builder, controller, and client, run red. Then the code, run green.
+5. One real question through `/api/chat` on gpt-4o-mini to prove the wiring; the adversarial set comes later (Nov 30 milestone).
+
+### Risks
+- **The agent's draft facts are wrong.** Every fact in the profile came from a repo (README, `package.json`, tests, `git log`), and I check `my_role` against my memory of the team.
+- **A profile with TODOs gets deployed.** `ProfileSchemaTest` fails on any `TODO(`, so `mvn test` is red until the profile is mine.
+- **CORS and Render cold starts** are deployment concerns, so they're deferred to the hosting milestone. `ALLOWED_ORIGIN` defaults to `http://localhost:5173`.
+
+### Proof
+- No key: `./mvnw test` covers behaviors 1–8 with a stubbed model client. Free.
+- Billed: one `curl` to `/api/chat` with a real key, ≈ $0.0007 on gpt-4o-mini.
+
+**Approved by:** _pending Patrick's review_
