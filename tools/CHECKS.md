@@ -41,6 +41,17 @@ Both models asked for the two calls of Q5 in a single reply (parallel `tool_call
 
 Eval total: **$0.0086**, plus 6 GitHub requests (unauthenticated, 60 an hour).
 
+## Live: the tool in the chatbot
+
+`./mvnw spring-boot:run`, then `POST /api/chat` with *"What has Patrick been working on lately in his ehr-reconciliation repo?"* (full response in `tools/live-api-chat-2026-11-11.json`):
+
+- `trace[0]`: `recent_commits {"repo":"ehr-reconciliation","count":5}` → `{"repo": "pmansy1/ehr-reconciliation", "commits": [{"sha": "3df8569", "date": "2026-03-19", ...}, ...]}`
+- `trace[1]`: the answer. `stoppedBy: answer`, `usage`: 6,621 prompt + 112 completion tokens (about $0.0011), `check.supported: true`.
+- Answer: "Recently, Patrick has made several updates to his `ehr-reconciliation` repository. He removed grading weights and bonus features sections, restored the CLAUDE.md file, added rate limit handling…"
+- **The same blind spot as Q4:** "recently" for commits from March 2026, eight months before the question. The claim check passes it, because every fact is in the result.
+
+The voice route needs no change: it posts the transcript to this same `/api/chat` and speaks `answer`.
+
 ## Misuse cases
 
 | Case | Test (no key) | Seen from a real model in the eval? |
