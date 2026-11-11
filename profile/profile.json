@@ -35,7 +35,7 @@
       "annotation": {
         "what_is_this": "A personal project I built to learn Java, Spring Boot, and PostgreSQL.",
         "why_this_choice": "A professor recommended this stack to me. I also felt most comfortable in Java, since all of my introductory CS courses were taught in it, so it was the language I knew best.",
-        "what_breaks": "TODO(Patrick): fragile points, assumptions, blast radius",
+        "what_breaks": "Looking at the repo now: it has no automated tests, so a change could break an endpoint without anyone noticing. The database password is a default value in the config files, which is fine for a local demo with synthetic patients but not for real patient data.",
         "what_did_i_learn": "I learned the core skills of backend development, along with agile development practices and version control with Git."
       }
     },
@@ -63,7 +63,7 @@
       "annotation": {
         "what_is_this": "A take-home project I built as part of a job application. It reconciles a patient's medical data from different sources into a single report.",
         "why_this_choice": "I used TypeScript and Express because that was the stack suggested by the founder of Onye, the company I was applying to.",
-        "what_breaks": "TODO(Patrick): e.g. what happens when the model's confidence score is wrong",
+        "what_breaks": "The confidence score comes entirely from Claude, so a wrong or overconfident reconciliation isn't caught by code. The response cache is an in-memory map that resets when the server restarts, there's no duplicate detection when two sources describe the same record, and the API is protected by a single shared key. My README lists these as what I'd improve with more time.",
         "what_did_i_learn": "This was my first experience calling an AI API from my own code."
       }
     },
@@ -92,7 +92,7 @@
       "annotation": {
         "what_is_this": "A class project: a gamified fitness app where you can compete with friends and draft a workout routine based on your interests and goals.",
         "why_this_choice": "The course was built around learning cloud-native development, and the project called for many microservices. We hosted it on our professor's Kubernetes cluster in his homelab.",
-        "what_breaks": "TODO(Patrick): the README already lists Harbor login, ingress routing and the wrong ingress host",
+        "what_breaks": "The deployment depended on pieces outside our code. We couldn't log in to Harbor to push our images, the ingress routing between the frontend and the backend services broke until we fixed the routes and the host name, and when a service like auth, challenge, or workout wasn't running, the UI couldn't reach it.",
         "what_did_i_learn": "I worked as part of a team, and this project was my introduction to cloud-native development and CI/CD."
       }
     }
@@ -194,22 +194,22 @@
     {
       "name": "AI integration",
       "started": "2026-09",
-      "what_i_have_done_so_far": "TODO(Patrick): what you have done so far, honestly"
+      "what_i_have_done_so_far": "Labs in CPSC 415 (AI Integration) this fall: a chat client calling a model through OpenRouter, a RAG app that answers questions from the course notes, reading receipts into structured data with a vision model and checking them with tests, generating an image set with a model critique, and a spoken interface with speech-to-text and text-to-speech. These are course labs, not shipped projects."
     },
     {
       "name": "Database management",
       "started": "2026-09",
-      "what_i_have_done_so_far": "TODO(Patrick): what you have done so far, honestly"
+      "what_i_have_done_so_far": "Taking CPSC 372 (Database Fundamentals) this fall."
     }
   ],
   "not_yet": [
     {
-      "name": "Building a RAG application",
-      "why_not_yet": "I haven't built a RAG application yet. TODO(Patrick): why it hasn't been a priority"
+      "name": "Native mobile development (iOS/Swift, Android/Kotlin)",
+      "why_not_yet": "My coursework and projects have been backend and web, and I'd rather go deep on those first."
     },
     {
-      "name": "Native mobile development (iOS/Swift, Android/Kotlin)",
-      "why_not_yet": "I haven't built a native mobile app yet. TODO(Patrick): why it hasn't been a priority"
+      "name": "Desktop applications (macOS/Windows)",
+      "why_not_yet": "My coursework and projects have been backend and web, and I'd rather go deep on those first."
     }
   ]
 }
