@@ -259,3 +259,28 @@ Implements [`intent/voice.md`](./intent/voice.md). If this section and that inte
 22. **The key stays on the server and the browser sends only audio.** The server reads `OPENROUTER_API_KEY` once at startup. The page source has no `sk-or`, and the browser check asserts no `Authorization` header leaves the browser, no request goes to `openrouter.ai`, and the only API call is to `/api/voice`.
 23. **Uploads are capped.** `/api/voice` refuses bodies over 10 MB with 413 and unknown audio types with 415, before any billed call.
 24. **Tests that call a model are skipped without a key.** `tests/test_eval.py` is `skipif(not OPENROUTER_API_KEY)`. Each clip is transcribed once and there's one speech call, never a model call inside a loop of tests.
+
+## Week 8: one tool
+
+Implements [`intent/tools.md`](./intent/tools.md). If this section and that intent disagree, the intent wins. Approved by Patrick Manswell, November 11, 2026.
+
+### 11. Tool: `recent_commits` (`api/.../tools/RecentCommitsTool.java`)
+- **What it does:** Returns the most recent commits (short SHA, date, author login, first line of the message) of one of my profile's repositories, from `GET https://api.github.com/repos/pmansy1/{repo}/commits?per_page={count}`. It's read-only, with no side effect.
+- **Language:** Java, in the Spring Boot service. **Why:** the answer function shared by `POST /api/chat` and the voice route (component 10, which posts to `/api/chat`) is in Java, and the lab requires the tool to go through that same function. The course example is Python, so I read it for the request shapes only. Calling GitHub uses the same `RestClient` as the model call, so there's no new dependency.
+- **Model:** none. It's a function my code runs.
+
+### 12. Tool loop and claim check (`api/.../tools/ToolLoop.java`, `ToolRegistry.java`, `ClaimChecker.java`)
+- **What it does:** Sends the question with the tool schemas, runs (or refuses) each requested call, returns each result to the model as a `tool` message with the matching `tool_call_id`, and repeats until the model answers or the cap is reached. Then plain code checks the answer against the trace.
+- **Language:** Java (same reason as component 11).
+- **Model:** `openai/gpt-4o-mini` (default, `CHAT_MODEL`). **Why:** it's my chatbot's model, it supports tools, and it costs about $0.0005 per tool round trip with the profile in the prompt. **Comparison:** `minimax/minimax-m3`, the class model, which also supports tools. It uses hidden reasoning, so its calls get `max_tokens` 1500 instead of the 400 cap (behavior 7 is amended for that model only and recorded as a finding).
+
+### Behavior (Week 8)
+25. **The schema the model sees.** One tool, `recent_commits`, with a description that says when to use it ("before saying anything about what Patrick has worked on recently") and JSON Schema arguments: `repo` (string, `enum` of the four repositories, required) and `count` (integer, 1–10, optional, default 5). The schema goes in every request's `tools`.
+26. **Arguments are validated in code against that schema.** `arguments` arrives as a JSON string. Invalid JSON, a non-object, a missing required argument, an unexpected argument, a wrong type, a value outside `enum`, or a number out of range returns `{"error": "..."}` saying what to fix, and the loop continues. Nothing throws.
+27. **An unknown tool returns an error result** naming the tools that exist, and the loop continues.
+28. **The loop stops at a step cap of 4.** If the model is still asking at step 4, the answer is the program's sentence, "I couldn't finish looking that up. Please try a narrower question.", not anything the model wrote, and `stoppedBy` is `cap`.
+29. **Side effects are held.** A tool marked as having a side effect is recorded in `pending` with its arguments and is not run on the model's request. Its function never executes unless a person confirms (no confirmation path exists yet). `recent_commits` has no side effect, so this is tested with a test-only tool.
+30. **GitHub failures are results, not crashes.** 404 → `{"error": "no public repository named ..."}`, 403 → `{"error": "GitHub rate limit reached ..."}`, timeout or other failure → `{"error": "could not reach GitHub ..."}`.
+31. **The claim check.** After the loop, `ClaimChecker` flags an answer that names a commit SHA (7+ hex characters) or a date (`YYYY-MM-DD`) that no successful tool result contained, or that describes a repository's recent commits when the tool returned an error for it, or never fetched it. The flags are returned with the answer as `check.unsupported`, and the answer is still shown.
+32. **The trace is returned with the answer.** `POST /api/chat` adds `trace` (each step: tool, arguments, result, or the answer), `stoppedBy` (`answer` or `cap`), `pending`, and `check` to its response. The voice route uses the same function and gets the same trace.
+33. **Every tool call costs an extra chat call.** The response's `usage` sums the tokens of all steps. The eval records tokens, cost, steps, and seconds per question, with and without a tool.
