@@ -89,11 +89,13 @@ ElevenLabs cost 2.7× as much per character and took 2.4× as long for the same 
 
 ## One turn
 
-_TODO(Patrick): one real question from my test set through the microphone at http://localhost:8000._
+One real question through the microphone at http://localhost:8000 (Chrome, hold-to-talk, `audio/webm`), Nov 11, 2026:
 
-- Question asked:
-- Transcript:
-- Answer:
-- Costs: stt $ · chat $ · tts $ · **total $**
+- Transcript: "Where does Patrick Manswell attend school?" Correct, name included.
+- Answer: "I don't have information about Patrick Manswell's school in this profile. The profile provided is for Sam Rivera, a senior at Trinity College." Honest: it didn't give Patrick Sam's school, even though both are actually at Trinity. It's two sentences with no markdown.
+- Costs: stt **$0.0000333** · chat **$0.000427** · tts **$0.00213** · **total $0.00259**
+- Seconds: 0.6 + 2.1 + 1.1 = 3.8 s
+
+Speech is 82% of the turn's cost, transcription about 1%. At $0.0026 a question, the $5 key limit covers about 1,900 voice questions. That limit plus a cap of about 30 s of audio per recording is what the hosting decision needs (`spec.md`, before November 30).
 
 This total is what one visitor's question costs, and it goes into `spec.md` under the hosting decision before November 30.
