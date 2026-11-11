@@ -85,4 +85,4 @@ Implements `spec.md` components 1–4 and behaviors 1–8. Week 8's tool attache
 - No key: `./mvnw test` covers behaviors 1–8 with a stubbed model client. Free.
 - Billed: one `curl` to `/api/chat` with a real key, ≈ $0.0007 on gpt-4o-mini.
 
-**Approved by:** _pending Patrick's review_
+**Approved by:** Patrick Manswell, November 11, 2026 (approved after the code was written; see the commit history)
