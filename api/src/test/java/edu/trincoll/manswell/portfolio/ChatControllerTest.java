@@ -13,6 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.Map;
+
+import edu.trincoll.manswell.portfolio.tools.ClaimCheck;
+import edu.trincoll.manswell.portfolio.tools.LoopResult;
+import edu.trincoll.manswell.portfolio.tools.ToolCall;
+import edu.trincoll.manswell.portfolio.tools.TraceStep;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -29,22 +36,23 @@ import org.springframework.test.web.servlet.MockMvc;
 class ChatControllerTest {
 
     @Autowired MockMvc mvc;
-    @MockitoBean ModelClient model;
+    @MockitoBean AnswerService answers;
     @MockitoBean ProfileService profile;
 
-    static final String SYSTEM = "system prompt with <profile>{}</profile>";
-
     void stubProfile() {
-        when(profile.systemPrompt()).thenReturn(SYSTEM);
         when(profile.rawJson()).thenReturn("{\"person\":{\"name\":\"Patrick Manswell\"}}");
+    }
+
+    static LoopResult answered(String text) {
+        return new LoopResult(text, "answer", List.of(TraceStep.answered(1, text)), List.of(), 1200, 30, 0.0002,
+                new ClaimCheck(true, List.of()));
     }
 
     @Test
     void validQuestionReturnsTheAnswerModelAndUsage() throws Exception {
-        stubProfile();
-        when(model.isConfigured()).thenReturn(true);
-        when(model.complete(eq(SYSTEM), eq("Has Patrick shipped Java?")))
-                .thenReturn(new ChatResult("Yes. Patrick has shipped Java in FHIR Lite.", "openai/gpt-4o-mini", 1200, 30));
+        when(answers.isConfigured()).thenReturn(true);
+        when(answers.model()).thenReturn("openai/gpt-4o-mini");
+        when(answers.answer(eq("Has Patrick shipped Java?"))).thenReturn(answered("Yes. Patrick has shipped Java in FHIR Lite."));
 
         mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"Has Patrick shipped Java?\"}"))
@@ -53,7 +61,28 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.answer").value("Yes. Patrick has shipped Java in FHIR Lite."))
                 .andExpect(jsonPath("$.model").value("openai/gpt-4o-mini"))
                 .andExpect(jsonPath("$.usage.promptTokens").value(1200))
-                .andExpect(jsonPath("$.usage.completionTokens").value(30));
+                .andExpect(jsonPath("$.usage.completionTokens").value(30))
+                .andExpect(jsonPath("$.stoppedBy").value("answer"))
+                .andExpect(jsonPath("$.check.supported").value(true))
+                .andExpect(jsonPath("$.trace[0].answer").value("Yes. Patrick has shipped Java in FHIR Lite."));
+    }
+
+    @Test
+    void theTraceShowsTheToolCallAndItsResult() throws Exception {
+        TraceStep call = TraceStep.call(1, new ToolCall("c1", "recent_commits", "{\"repo\":\"portfolio\"}"),
+                Map.of("repo", "pmansy1/portfolio", "commits", List.of()));
+        LoopResult r = new LoopResult("No commits came back.", "answer",
+                List.of(call, TraceStep.answered(2, "No commits came back.")), List.of(), 2000, 40, 0.0004,
+                new ClaimCheck(true, List.of()));
+        when(answers.isConfigured()).thenReturn(true);
+        when(answers.model()).thenReturn("openai/gpt-4o-mini");
+        when(answers.answer(anyString())).thenReturn(r);
+        mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content("{\"question\":\"What's new?\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.trace[0].tool").value("recent_commits"))
+                .andExpect(jsonPath("$.trace[0].arguments").value("{\"repo\":\"portfolio\"}"))
+                .andExpect(jsonPath("$.trace[0].result.repo").value("pmansy1/portfolio"))
+                .andExpect(jsonPath("$.usage.promptTokens").value(2000));
     }
 
     @Test
@@ -62,7 +91,7 @@ class ChatControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.ok").value(false))
                 .andExpect(jsonPath("$.error").isNotEmpty());
-        verify(model, never()).complete(anyString(), anyString());
+        verify(answers, never()).answer(anyString());
     }
 
     @Test
@@ -71,7 +100,7 @@ class ChatControllerTest {
         mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content("{\"question\":\"" + longQ + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.ok").value(false));
-        verify(model, never()).complete(anyString(), anyString());
+        verify(answers, never()).answer(anyString());
     }
 
     @Test
@@ -80,24 +109,23 @@ class ChatControllerTest {
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.ok").value(false));
         mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content("not json"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.ok").value(false));
-        verify(model, never()).complete(anyString(), anyString());
+        verify(answers, never()).answer(anyString());
     }
 
     @Test
     void missingKeyIs503WithAFriendlyMessageAndNoKeyName() throws Exception {
-        when(model.isConfigured()).thenReturn(false);
+        when(answers.isConfigured()).thenReturn(false);
         mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content("{\"question\":\"hi\"}"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.error").value("The chatbot is not configured right now."))
                 .andExpect(content().string(not(containsString("OPENROUTER"))));
-        verify(model, never()).complete(anyString(), anyString());
+        verify(answers, never()).answer(anyString());
     }
 
     @Test
     void upstreamFailureIs502WithoutLeakingTheBody() throws Exception {
-        stubProfile();
-        when(model.isConfigured()).thenReturn(true);
-        when(model.complete(anyString(), anyString())).thenThrow(new UpstreamException("HTTP 429 secret body sk-or-xyz"));
+        when(answers.isConfigured()).thenReturn(true);
+        when(answers.answer(anyString())).thenThrow(new UpstreamException("HTTP 429 secret body sk-or-xyz"));
         mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content("{\"question\":\"hi\"}"))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.error").value("The chatbot couldn't answer right now. Please try again."))
@@ -106,9 +134,9 @@ class ChatControllerTest {
 
     @Test
     void emptyModelAnswerBecomesTheFallbackSentence() throws Exception {
-        stubProfile();
-        when(model.isConfigured()).thenReturn(true);
-        when(model.complete(anyString(), anyString())).thenReturn(new ChatResult("  ", "openai/gpt-4o-mini", 10, 0));
+        when(answers.isConfigured()).thenReturn(true);
+        when(answers.model()).thenReturn("openai/gpt-4o-mini");
+        when(answers.answer(anyString())).thenReturn(answered("  "));
         mvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content("{\"question\":\"hi\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answer").value("I don't have an answer to that from Patrick's profile."));
