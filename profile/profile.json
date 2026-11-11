@@ -4,8 +4,8 @@
     "name": "Patrick Manswell",
     "headline": "TODO(Patrick): one line, e.g. 'Computer science student at Trinity College building Java and AI-integrated web services.'",
     "school": "Trinity College",
-    "graduation": "TODO(Patrick): e.g. 'May 2027', or delete this field",
-    "looking_for": "TODO(Patrick): what kind of work you want, in your words",
+    "graduation": "May 2027",
+    "looking_for": "Software engineering roles on the East Coast where I can leverage my skills in AI, testing, and web services.",
     "contact": {
       "github": "https://github.com/pmansy1"
     }
@@ -19,13 +19,24 @@
       "context": "personal",
       "my_role": "Solo: built the Spring Boot backend, the PostgreSQL schema and seed data, the Docker Compose setup, and the React/TypeScript UI.",
       "repo": "https://github.com/pmansy1/fhir-lite-patient-explorer",
-      "stack": ["Java 21", "Spring Boot 3 (Web, Data JPA, Validation)", "PostgreSQL", "Docker Compose", "Maven", "Swagger UI", "React 19", "TypeScript", "Vite", "Tailwind CSS"],
+      "stack": [
+        "Java 21",
+        "Spring Boot 3 (Web, Data JPA, Validation)",
+        "PostgreSQL",
+        "Docker Compose",
+        "Maven",
+        "Swagger UI",
+        "React 19",
+        "TypeScript",
+        "Vite",
+        "Tailwind CSS"
+      ],
       "evidence": "Public repo: REST controllers for Patient, Encounter, Medication, Observation and CareGap with MRN search, Swagger UI, seeded synthetic patients, Docker Compose for backend + database. No automated tests.",
       "annotation": {
-        "what_is_this": "TODO(Patrick): what it does AND what it does not do",
+        "what_is_this": "A project to help me learn more about Java, Spring, and Postgres.",
         "why_this_choice": "TODO(Patrick): alternatives (language, framework, database) and the trade-off",
         "what_breaks": "TODO(Patrick): fragile points, assumptions, blast radius",
-        "what_did_i_learn": "TODO(Patrick): concrete, including anything you got wrong and caught"
+        "what_did_i_learn": "I learned about the core competencies, agile development, version control and Git, and a lot of backend development."
       }
     },
     {
@@ -37,13 +48,23 @@
       "my_role": "Solo: take-home assessment for the EHR Integration Intern role at Onye. Built the Express server, the Claude prompts and structured-output handling, the React client, and the server tests.",
       "repo": "https://github.com/pmansy1/ehr-reconciliation",
       "live_url": "https://ehr-reconciliation.vercel.app",
-      "stack": ["TypeScript", "Node.js", "Express", "React", "Vite", "Anthropic Claude API (claude-sonnet-4-20250514)", "structured JSON output", "Vitest", "Vercel"],
+      "stack": [
+        "TypeScript",
+        "Node.js",
+        "Express",
+        "React",
+        "Vite",
+        "Anthropic Claude API (claude-sonnet-4-20250514)",
+        "structured JSON output",
+        "Vitest",
+        "Vercel"
+      ],
       "evidence": "Live demo on Vercel; 9 Vitest server tests covering input validation, response shape, implausible vitals (BP 340/180 flagged high severity), request caching (Claude called once for identical payloads), and API-key middleware, with the Claude call mocked.",
       "annotation": {
-        "what_is_this": "TODO(Patrick)",
+        "what_is_this": "A project I created as a test for a job. It reconciles medical data from patients into one report.",
         "why_this_choice": "TODO(Patrick): include why Claude Sonnet and what else you considered",
         "what_breaks": "TODO(Patrick): e.g. what happens when the model's confidence score is wrong",
-        "what_did_i_learn": "TODO(Patrick)"
+        "what_did_i_learn": "This was my first introduction to calling an AI API."
       }
     },
     {
@@ -52,33 +73,122 @@
       "status": "shipped",
       "date": "2025-12",
       "context": "team",
-      "my_role": "TODO(Patrick): confirm. Draft from the git history (65+6 of 262 commits): the React frontend (fitness-app-react-ui), the auth-service (JWT and Spring Security) and user-service in Java Spring Boot, Kubernetes manifests, config maps and ingress for user, auth and frontend, GitHub Actions CI/CD for auth, user and frontend, AI coach prompt fixes (stricter JSON output, input sanitizing), and the user guide. Teammates built the leaderboard, challenge and workout services and most of the original screens.",
+      "my_role": "From the git history (71 of 262 commits): the React frontend (fitness-app-react-ui), the auth-service (JWT and Spring Security) and user-service in Java Spring Boot, Kubernetes manifests, config maps and ingress for user, auth and frontend, GitHub Actions CI/CD for auth, user and frontend, AI coach prompt fixes (stricter JSON output, input sanitizing), and the user guide. Teammates built the leaderboard, challenge and workout services and most of the original screens.",
       "repo": "https://github.com/pmansy1/Cloud-Native-Dev-Project",
-      "stack": ["Java", "Spring Boot", "Spring Security", "JWT", "React", "Node.js", "PostgreSQL", "RabbitMQ", "Docker", "Kubernetes", "GitHub Actions"],
+      "stack": [
+        "Java",
+        "Spring Boot",
+        "Spring Security",
+        "JWT",
+        "React",
+        "Node.js",
+        "PostgreSQL",
+        "RabbitMQ",
+        "Docker",
+        "Kubernetes",
+        "GitHub Actions"
+      ],
       "evidence": "Team repo with 4 contributors; k8s/ manifests, .github/workflows/ CI per service, architecture and ER diagrams, user guide. Credit only what my_role lists.",
       "annotation": {
-        "what_is_this": "TODO(Patrick)",
+        "what_is_this": "A class project: a gamified fitness app that lets you compete with friends. You can draft a workout routine based on your interests and goals.",
         "why_this_choice": "TODO(Patrick)",
         "what_breaks": "TODO(Patrick): the README already lists Harbor login, ingress routing and the wrong ingress host",
-        "what_did_i_learn": "TODO(Patrick)"
+        "what_did_i_learn": "I worked in a team on this, and it was an introduction to cloud-native development and CI/CD."
       }
     }
   ],
   "skills": [
-    {"name": "Java", "evidence": ["fhir-lite-patient-explorer", "Cloud-Native-Dev-Project"]},
-    {"name": "Spring Boot", "evidence": ["fhir-lite-patient-explorer", "Cloud-Native-Dev-Project"]},
-    {"name": "Spring Security with JWT", "evidence": ["Cloud-Native-Dev-Project"]},
-    {"name": "PostgreSQL", "evidence": ["fhir-lite-patient-explorer"]},
-    {"name": "REST API design", "evidence": ["fhir-lite-patient-explorer", "ehr-reconciliation"]},
-    {"name": "TypeScript", "evidence": ["ehr-reconciliation", "fhir-lite-patient-explorer"]},
-    {"name": "Node.js and Express", "evidence": ["ehr-reconciliation"]},
-    {"name": "React", "evidence": ["ehr-reconciliation", "fhir-lite-patient-explorer", "Cloud-Native-Dev-Project"]},
-    {"name": "Anthropic Claude API with structured JSON output", "evidence": ["ehr-reconciliation"]},
-    {"name": "Unit testing with Vitest", "evidence": ["ehr-reconciliation"]},
-    {"name": "Docker and Docker Compose", "evidence": ["fhir-lite-patient-explorer", "Cloud-Native-Dev-Project"]},
-    {"name": "Kubernetes manifests and ingress", "evidence": ["Cloud-Native-Dev-Project"]},
-    {"name": "GitHub Actions CI/CD", "evidence": ["Cloud-Native-Dev-Project"]},
-    {"name": "Deploying a web app on Vercel", "evidence": ["ehr-reconciliation"]}
+    {
+      "name": "Java",
+      "evidence": [
+        "fhir-lite-patient-explorer",
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "Spring Boot",
+      "evidence": [
+        "fhir-lite-patient-explorer",
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "Spring Security with JWT",
+      "evidence": [
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "PostgreSQL",
+      "evidence": [
+        "fhir-lite-patient-explorer"
+      ]
+    },
+    {
+      "name": "REST API design",
+      "evidence": [
+        "fhir-lite-patient-explorer",
+        "ehr-reconciliation"
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "evidence": [
+        "ehr-reconciliation",
+        "fhir-lite-patient-explorer"
+      ]
+    },
+    {
+      "name": "Node.js and Express",
+      "evidence": [
+        "ehr-reconciliation"
+      ]
+    },
+    {
+      "name": "React",
+      "evidence": [
+        "ehr-reconciliation",
+        "fhir-lite-patient-explorer",
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "Anthropic Claude API with structured JSON output",
+      "evidence": [
+        "ehr-reconciliation"
+      ]
+    },
+    {
+      "name": "Unit testing with Vitest",
+      "evidence": [
+        "ehr-reconciliation"
+      ]
+    },
+    {
+      "name": "Docker and Docker Compose",
+      "evidence": [
+        "fhir-lite-patient-explorer",
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "Kubernetes manifests and ingress",
+      "evidence": [
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "GitHub Actions CI/CD",
+      "evidence": [
+        "Cloud-Native-Dev-Project"
+      ]
+    },
+    {
+      "name": "Deploying a web app on Vercel",
+      "evidence": [
+        "ehr-reconciliation"
+      ]
+    }
   ],
   "learning": [
     {
